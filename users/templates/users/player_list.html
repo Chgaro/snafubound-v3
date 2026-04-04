@@ -1,0 +1,220 @@
+{% extends "core/base.html" %}
+
+{% block title %}Jugadores · Snafubound{% endblock %}
+
+{% block content %}
+<section class="page-section">
+
+  <div class="page-heading">
+    <p class="eyebrow">Jugadores</p>
+    <h1>Rankings de jugadores</h1>
+    <p class="section-text">
+      Cambia entre el histórico completo y los datos del set actual.
+    </p>
+
+    <div class="scope-switch">
+      <a
+        href="?scope=all"
+        class="scope-switch__button {% if scope == 'all' %}scope-switch__button--active{% endif %}"
+      >
+        Histórico
+      </a>
+
+      {% if current_set %}
+        <a
+          href="?scope=set"
+          class="scope-switch__button {% if scope == 'set' %}scope-switch__button--active{% endif %}"
+        >
+          Set actual
+        </a>
+      {% endif %}
+    </div>
+
+    {% if scope == "set" and current_set %}
+      <p class="section-text section-text--compact">
+        Mostrando solo torneos finalizados del set
+        <span class="{{ current_set.badge_classes }}">{{ current_set.name }}</span>
+      </p>
+    {% endif %}
+  </div>
+
+  <section class="page-section">
+    <div class="page-heading">
+      <h2>Más puntos</h2>
+    </div>
+
+    <div class="standings-list">
+      {% for player in ranking_points %}
+        <a
+          href="{% url 'player_detail' player.player__slug %}"
+          class="card standings-row standings-link {% if forloop.counter <= 3 %}standings-row--top{{ forloop.counter }}{% endif %}"
+          aria-label="Ver jugador {{ player.player__display_name }}"
+        >
+          <div class="standings-main">
+            <div class="standings-rank">
+              {% if forloop.counter == 1 %}
+                🥇
+              {% elif forloop.counter == 2 %}
+                🥈
+              {% elif forloop.counter == 3 %}
+                🥉
+              {% else %}
+                #{{ forloop.counter }}
+              {% endif %}
+            </div>
+
+            <div class="media-object">
+              {% if player.player__avatar %}
+                <img
+                  src="{{ MEDIA_URL }}{{ player.player__avatar }}"
+                  alt="{{ player.player__display_name }}"
+                  class="avatar avatar--sm"
+                >
+              {% else %}
+                <div class="media-fallback media-fallback--sm">
+                  {{ player.player__display_name|slice:":1"|upper }}
+                </div>
+              {% endif %}
+
+              <div>
+                <h3 class="card-title">{{ player.player__display_name }}</h3>
+                <p class="section-text">
+                  {{ player.total_wins }}W · {{ player.total_losses }}L · {{ player.total_draws }}D
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="meta-list">
+            <span class="meta-pill meta-pill--strong">{{ player.total_points }} pts</span>
+            <span class="meta-pill">{{ player.total_tournaments }} torneos</span>
+          </div>
+        </a>
+      {% empty %}
+        <div class="card">
+          <p>No hay datos suficientes para este ranking.</p>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="page-section">
+    <div class="page-heading">
+      <h2>Más victorias</h2>
+    </div>
+
+    <div class="standings-list">
+      {% for player in ranking_wins %}
+        <a
+          href="{% url 'player_detail' player.player__slug %}"
+          class="card standings-row standings-link {% if forloop.counter <= 3 %}standings-row--top{{ forloop.counter }}{% endif %}"
+          aria-label="Ver jugador {{ player.player__display_name }}"
+        >
+          <div class="standings-main">
+            <div class="standings-rank">
+              {% if forloop.counter == 1 %}
+                🥇
+              {% elif forloop.counter == 2 %}
+                🥈
+              {% elif forloop.counter == 3 %}
+                🥉
+              {% else %}
+                #{{ forloop.counter }}
+              {% endif %}
+            </div>
+
+            <div class="media-object">
+              {% if player.player__avatar %}
+                <img
+                  src="{{ MEDIA_URL }}{{ player.player__avatar }}"
+                  alt="{{ player.player__display_name }}"
+                  class="avatar avatar--sm"
+                >
+              {% else %}
+                <div class="media-fallback media-fallback--sm">
+                  {{ player.player__display_name|slice:":1"|upper }}
+                </div>
+              {% endif %}
+
+              <div>
+                <h3 class="card-title">{{ player.player__display_name }}</h3>
+                <p class="section-text">
+                  {{ player.total_points }} pts · {{ player.total_tournaments }} torneos
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="meta-list">
+            <span class="meta-pill meta-pill--strong">{{ player.total_wins }}W</span>
+          </div>
+        </a>
+      {% empty %}
+        <div class="card">
+          <p>No hay datos suficientes para este ranking.</p>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="page-section">
+    <div class="page-heading">
+      <h2>Más participaciones</h2>
+    </div>
+
+    <div class="standings-list">
+      {% for player in ranking_participations %}
+        <a
+          href="{% url 'player_detail' player.player__slug %}"
+          class="card standings-row standings-link {% if forloop.counter <= 3 %}standings-row--top{{ forloop.counter }}{% endif %}"
+          aria-label="Ver jugador {{ player.player__display_name }}"
+        >
+          <div class="standings-main">
+            <div class="standings-rank">
+              {% if forloop.counter == 1 %}
+                🥇
+              {% elif forloop.counter == 2 %}
+                🥈
+              {% elif forloop.counter == 3 %}
+                🥉
+              {% else %}
+                #{{ forloop.counter }}
+              {% endif %}
+            </div>
+
+            <div class="media-object">
+              {% if player.player__avatar %}
+                <img
+                  src="{{ MEDIA_URL }}{{ player.player__avatar }}"
+                  alt="{{ player.player__display_name }}"
+                  class="avatar avatar--sm"
+                >
+              {% else %}
+                <div class="media-fallback media-fallback--sm">
+                  {{ player.player__display_name|slice:":1"|upper }}
+                </div>
+              {% endif %}
+
+              <div>
+                <h3 class="card-title">{{ player.player__display_name }}</h3>
+                <p class="section-text">
+                  {{ player.total_points }} pts · {{ player.total_wins }} victorias
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="meta-list">
+            <span class="meta-pill meta-pill--strong">{{ player.total_tournaments }} torneos</span>
+          </div>
+        </a>
+      {% empty %}
+        <div class="card">
+          <p>No hay datos suficientes para este ranking.</p>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+</section>
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends "core/base.html" %}
+
+{% block title %}Importar torneo · Snafubound{% endblock %}
+
+{% block content %}
+<section class="page-section">
+  <div class="page-heading">
+    <p class="eyebrow">Imports</p>
+    <h1>Importar torneo desde Excel</h1>
+    <p class="section-text">
+      Sube un archivo <strong>.xlsx</strong> con la plantilla oficial de Snafubound.
+      La importación valida el workbook y, si todo es correcto, guarda torneo,
+      jugadores, inscripciones, rondas y enfrentamientos.
+    </p>
+  </div>
+
+  <article class="card">
+    <p class="card-kicker">Formato esperado</p>
+
+    <div class="section-text">
+      <p>La importación usa estas hojas obligatorias:</p>
+      <ul>
+        <li><strong>tournament</strong></li>
+        <li><strong>players</strong></li>
+        <li><strong>entries</strong></li>
+        <li><strong>rounds</strong></li>
+        <li><strong>matches</strong></li>
+      </ul>
+    </div>
+  </article>
+
+  {% if success_message %}
+    <article class="card">
+      <p class="card-kicker">Importación completada</p>
+      <p class="section-text">{{ success_message }}</p>
+
+      {% if import_result %}
+        <div class="section-text">
+          <p>
+            <strong>Torneo:</strong>
+            <a href="{{ import_result.tournament.get_absolute_url }}">
+              {{ import_result.tournament.name }}
+            </a>
+          </p>
+
+          <p><strong>Creados:</strong></p>
+          <ul>
+            <li><strong>Torneos:</strong> {{ import_result.created_counts.tournaments }}</li>
+            <li><strong>Jugadores:</strong> {{ import_result.created_counts.players }}</li>
+            <li><strong>Entries:</strong> {{ import_result.created_counts.entries }}</li>
+            <li><strong>Rondas:</strong> {{ import_result.created_counts.rounds }}</li>
+            <li><strong>Matches:</strong> {{ import_result.created_counts.matches }}</li>
+          </ul>
+
+          <p><strong>Actualizados:</strong></p>
+          <ul>
+            <li><strong>Torneos:</strong> {{ import_result.updated_counts.tournaments }}</li>
+            <li><strong>Jugadores:</strong> {{ import_result.updated_counts.players }}</li>
+            <li><strong>Entries:</strong> {{ import_result.updated_counts.entries }}</li>
+            <li><strong>Rondas:</strong> {{ import_result.updated_counts.rounds }}</li>
+            <li><strong>Matches:</strong> {{ import_result.updated_counts.matches }}</li>
+          </ul>
+        </div>
+      {% endif %}
+    </article>
+  {% endif %}
+
+  {% if import_error %}
+    <article class="card">
+      <p class="card-kicker">Error de importación</p>
+      <p class="section-text">{{ import_error }}</p>
+    </article>
+  {% endif %}
+
+  {% if form.non_field_errors %}
+    <article class="card">
+      <p class="card-kicker">Errores</p>
+      {% for error in form.non_field_errors %}
+        <p class="section-text">{{ error }}</p>
+      {% endfor %}
+    </article>
+  {% endif %}
+
+  <article class="card">
+    <p class="card-kicker">Subida de archivo</p>
+
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <div class="section-text">
+        <label for="{{ form.file.id_for_label }}"><strong>{{ form.file.label }}</strong></label>
+      </div>
+
+      <div style="margin-top: 0.75rem;">
+        {{ form.file }}
+      </div>
+
+      {% if form.file.help_text %}
+        <p class="section-text section-text--compact" style="margin-top: 0.75rem;">
+          {{ form.file.help_text }}
+        </p>
+      {% endif %}
+
+      {% if form.file.errors %}
+        <div style="margin-top: 0.75rem;">
+          {% for error in form.file.errors %}
+            <p class="section-text">{{ error }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <div style="margin-top: 1rem;">
+        <button type="submit" class="scope-switch__button scope-switch__button--active">
+          Importar torneo
+        </button>
+      </div>
+    </form>
+  </article>
+</section>
+{% endblock %}

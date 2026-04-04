@@ -1,0 +1,212 @@
+{% extends "core/base.html" %}
+
+{% block title %}Snafubound{% endblock %}
+
+{% block content %}
+<section class="page-section">
+  <section class="page-section">
+    <div class="page-heading">
+      <h2>Últimos torneos</h2>
+    </div>
+
+    <div class="card-list card-list--stack">
+      {% for t in latest_tournaments %}
+        <a href="{{ t.get_absolute_url }}" class="card card-link tournament-row">
+          <div class="tournament-row-main">
+            <p class="card-kicker">Torneo</p>
+
+            <h3 class="card-title">
+              {{ t.name }}
+            </h3>
+
+            <div class="meta-list">
+              <span class="{{ t.set.badge_classes }}">{{ t.set.name }}</span>
+              <span class="{{ t.status_badge_classes }}">{{ t.get_status_display }}</span>
+            </div>
+          </div>
+
+        <div class="tournament-row-side">
+          {% if t.date %}
+            <span class="meta-pill badge-date">
+              {{ t.date|date:"d/m/Y" }}
+            </span>
+          {% else %}
+            <span class="meta-pill badge-date badge-date--empty">Sin fecha</span>
+          {% endif %}
+        </div>
+        </a>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="page-section">
+    <div class="page-heading">
+      <h2>Histórico</h2>
+    </div>
+
+    <div class="stats-grid">
+      {% if top_player_all %}
+        <a href="{% url 'player_detail' top_player_all.player__slug %}" class="card card-link">
+          <p class="card-kicker">Jugador destacado</p>
+
+          <div class="media-object">
+            {% if top_player_all.player__avatar %}
+              <img
+                src="{{ MEDIA_URL }}{{ top_player_all.player__avatar }}"
+                alt="{{ top_player_all.player__display_name }}"
+                class="avatar"
+              >
+            {% else %}
+              <div class="media-fallback">
+                {{ top_player_all.player__display_name|slice:":1"|upper }}
+              </div>
+            {% endif %}
+
+            <div>
+              <h3 class="card-title">{{ top_player_all.player__display_name }}</h3>
+            </div>
+          </div>
+
+          <div class="meta-list">
+            <span class="meta-pill">{{ top_player_all.total_points }} pts</span>
+            <span class="meta-pill">{{ top_player_all.total_wins }}W</span>
+          </div>
+        </a>
+      {% endif %}
+
+      {% if top_legend_all %}
+        <a href="{% url 'legend_detail' top_legend_all.legend__slug %}" class="card card-link">
+          <p class="card-kicker">Leyenda destacada</p>
+
+          <div class="media-object">
+            {% if top_legend_all.legend__image %}
+              <img
+                src="{{ MEDIA_URL }}{{ top_legend_all.legend__image }}"
+                alt="{{ top_legend_all.legend__name }}"
+                class="legend-image"
+              >
+            {% else %}
+              <div class="media-fallback">
+                {{ top_legend_all.legend__name|slice:":1"|upper }}
+              </div>
+            {% endif %}
+
+            <div>
+              <h3 class="card-title">{{ top_legend_all.legend__name }}</h3>
+            </div>
+          </div>
+
+          <div class="meta-list">
+            <span class="meta-pill">{{ top_legend_all.total_uses }} usos</span>
+          </div>
+        </a>
+      {% endif %}
+    </div>
+  </section>
+
+  {% if current_set %}
+    <section class="page-section">
+      <div class="page-heading">
+        <h2>Set actual · {{ current_set.name }}</h2>
+      </div>
+
+      <div class="stats-grid">
+        {% if top_player_current %}
+          <a href="{% url 'player_detail' top_player_current.player__slug %}" class="card card-link">
+            <p class="card-kicker">Jugador destacado</p>
+
+            <div class="media-object">
+              {% if top_player_current.player__avatar %}
+                <img
+                  src="{{ MEDIA_URL }}{{ top_player_current.player__avatar }}"
+                  alt="{{ top_player_current.player__display_name }}"
+                  class="avatar"
+                >
+              {% else %}
+                <div class="media-fallback">
+                  {{ top_player_current.player__display_name|slice:":1"|upper }}
+                </div>
+              {% endif %}
+
+              <div>
+                <h3 class="card-title">{{ top_player_current.player__display_name }}</h3>
+              </div>
+            </div>
+
+            <div class="meta-list">
+              <span class="meta-pill">{{ top_player_current.total_points }} pts</span>
+            </div>
+          </a>
+        {% endif %}
+
+        {% if top_legend_current %}
+          <a href="{% url 'legend_detail' top_legend_current.legend__slug %}" class="card card-link">
+            <p class="card-kicker">Leyenda destacada</p>
+
+            <div class="media-object">
+              {% if top_legend_current.legend__image %}
+                <img
+                  src="{{ MEDIA_URL }}{{ top_legend_current.legend__image }}"
+                  alt="{{ top_legend_current.legend__name }}"
+                  class="legend-image"
+                >
+              {% else %}
+                <div class="media-fallback">
+                  {{ top_legend_current.legend__name|slice:":1"|upper }}
+                </div>
+              {% endif %}
+
+              <div>
+                <h3 class="card-title">{{ top_legend_current.legend__name }}</h3>
+              </div>
+            </div>
+
+            <div class="meta-list">
+              <span class="meta-pill">{{ top_legend_current.total_uses }} usos</span>
+            </div>
+          </a>
+        {% endif %}
+      </div>
+    </section>
+  {% endif %}
+
+  <section class="page-section">
+    <div class="page-heading">
+      <h2>Top jugadores</h2>
+    </div>
+
+    <div class="standings-list">
+      {% for p in top_players %}
+        <a href="{% url 'player_detail' p.player__slug %}" class="card standings-row standings-link">
+          <div class="standings-main">
+            <div class="standings-rank">#{{ forloop.counter }}</div>
+
+            <div class="media-object">
+              {% if p.player__avatar %}
+                <img
+                  src="{{ MEDIA_URL }}{{ p.player__avatar }}"
+                  alt="{{ p.player__display_name }}"
+                  class="avatar avatar--sm"
+                >
+              {% else %}
+                <div class="media-fallback media-fallback--sm">
+                  {{ p.player__display_name|slice:":1"|upper }}
+                </div>
+              {% endif %}
+
+              <div>
+                <h3 class="card-title">{{ p.player__display_name }}</h3>
+              </div>
+            </div>
+          </div>
+
+          <div class="meta-list">
+            <span class="meta-pill meta-pill--strong">{{ p.total_points }} pts</span>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  </section>
+
+</section>
+{% endblock %}

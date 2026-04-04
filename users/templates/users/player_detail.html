@@ -1,0 +1,314 @@
+{% extends "core/base.html" %}
+
+{% block title %}{{ player.display_name }} · Snafubound{% endblock %}
+
+{% block content %}
+<section class="page-section">
+
+  <div class="page-heading">
+    <p class="eyebrow">Jugador</p>
+
+    <div class="media-object">
+      {% if player.avatar %}
+        <img
+          src="{{ player.avatar.url }}"
+          alt="{{ player.display_name }}"
+          class="avatar avatar--lg"
+        >
+      {% else %}
+        <div class="media-fallback media-fallback--lg">
+          {{ player.display_name|slice:":1"|upper }}
+        </div>
+      {% endif %}
+
+      <div>
+        <h1>{{ player.display_name }}</h1>
+      </div>
+    </div>
+
+    <div class="scope-switch">
+      <a
+        href="?scope=all"
+        class="scope-switch__button {% if scope == 'all' %}scope-switch__button--active{% endif %}"
+      >
+        Histórico
+      </a>
+
+      {% if current_set %}
+        <a
+          href="?scope=set"
+          class="scope-switch__button {% if scope == 'set' %}scope-switch__button--active{% endif %}"
+        >
+          Set actual
+        </a>
+      {% endif %}
+    </div>
+
+    {% if scope == "set" and current_set %}
+      <p class="section-text section-text--compact">
+        Mostrando estadísticas y rivalidades solo del set
+        <span class="{{ current_set.badge_classes }}">{{ current_set.name }}</span>
+      </p>
+    {% endif %}
+  </div>
+
+  <div class="stats-grid">
+    <article class="card stat-card">
+      <p class="card-kicker">Puntos</p>
+      <p class="stat-value">{{ stats.total_points|default:0 }}</p>
+    </article>
+
+    <article class="card stat-card">
+      <p class="card-kicker">Victorias</p>
+      <p class="stat-value">{{ stats.total_wins|default:0 }}</p>
+    </article>
+
+    <article class="card stat-card">
+      <p class="card-kicker">Derrotas</p>
+      <p class="stat-value">{{ stats.total_losses|default:0 }}</p>
+    </article>
+
+    <article class="card stat-card">
+      <p class="card-kicker">Empates</p>
+      <p class="stat-value">{{ stats.total_draws|default:0 }}</p>
+    </article>
+
+    <article class="card stat-card">
+      <p class="card-kicker">Torneos</p>
+      <p class="stat-value">{{ stats.total_tournaments|default:0 }}</p>
+    </article>
+
+    <article class="card stat-card">
+      <p class="card-kicker">Winrate</p>
+      <p class="stat-value">{{ winrate|floatformat:1 }}%</p>
+    </article>
+  </div>
+
+  <section class="page-section">
+    <div class="page-heading">
+      <h2>Rivales</h2>
+    </div>
+
+    <div class="stats-grid">
+      {% if nemesis %}
+        <a
+          href="{% url 'player_detail' nemesis.player.slug %}?scope={{ scope }}"
+          class="card stat-card card-link"
+          aria-label="Ver jugador {{ nemesis.player.display_name }}"
+        >
+          <p class="card-kicker">Némesis</p>
+
+          <div class="media-object">
+            {% if nemesis.player.avatar %}
+              <img
+                src="{{ nemesis.player.avatar.url }}"
+                alt="{{ nemesis.player.display_name }}"
+                class="avatar"
+              >
+            {% else %}
+              <div class="media-fallback">
+                {{ nemesis.player.display_name|slice:":1"|upper }}
+              </div>
+            {% endif %}
+
+            <div>
+              <h3 class="card-title">{{ nemesis.player.display_name }}</h3>
+
+              <p class="section-text">
+                Winrate: {{ nemesis.winrate|floatformat:1 }}%
+              </p>
+            </div>
+          </div>
+
+          <div class="meta-list">
+            <span class="meta-pill">{{ nemesis.wins }}W</span>
+            <span class="meta-pill">{{ nemesis.losses }}L</span>
+            <span class="meta-pill">{{ nemesis.draws }}D</span>
+            <span class="meta-pill">{{ nemesis.matches }} matches</span>
+          </div>
+        </a>
+      {% else %}
+        <article class="card stat-card">
+          <p class="card-kicker">Némesis</p>
+          <p class="section-text">
+            Todavía no hay suficientes enfrentamientos repetidos.
+          </p>
+        </article>
+      {% endif %}
+
+      {% if favorite_opponent %}
+        <a
+          href="{% url 'player_detail' favorite_opponent.player.slug %}?scope={{ scope }}"
+          class="card stat-card card-link"
+          aria-label="Ver jugador {{ favorite_opponent.player.display_name }}"
+        >
+          <p class="card-kicker">Rival favorito</p>
+
+          <div class="media-object">
+            {% if favorite_opponent.player.avatar %}
+              <img
+                src="{{ favorite_opponent.player.avatar.url }}"
+                alt="{{ favorite_opponent.player.display_name }}"
+                class="avatar"
+              >
+            {% else %}
+              <div class="media-fallback">
+                {{ favorite_opponent.player.display_name|slice:":1"|upper }}
+              </div>
+            {% endif %}
+
+            <div>
+              <h3 class="card-title">{{ favorite_opponent.player.display_name }}</h3>
+
+              <p class="section-text">
+                Winrate: {{ favorite_opponent.winrate|floatformat:1 }}%
+              </p>
+            </div>
+          </div>
+
+          <div class="meta-list">
+            <span class="meta-pill">{{ favorite_opponent.wins }}W</span>
+            <span class="meta-pill">{{ favorite_opponent.losses }}L</span>
+            <span class="meta-pill">{{ favorite_opponent.draws }}D</span>
+            <span class="meta-pill">{{ favorite_opponent.matches }} matches</span>
+          </div>
+        </a>
+      {% else %}
+        <article class="card stat-card">
+          <p class="card-kicker">Rival favorito</p>
+          <p class="section-text">
+            Todavía no hay suficientes enfrentamientos repetidos.
+          </p>
+        </article>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="page-section">
+    <div class="page-heading">
+      <h2>Resumen</h2>
+    </div>
+
+    <div class="card">
+      {% if favorite_legend %}
+        <p class="section-text">
+          Leyenda más usada:
+          <strong>{{ favorite_legend.legend__name }}</strong>
+          ({{ favorite_legend.uses }} torneo{{ favorite_legend.uses|pluralize }})
+        </p>
+      {% else %}
+        <p class="section-text">Todavía no hay suficiente información sobre leyendas.</p>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="page-section">
+    <div class="page-heading">
+      <h2>Historial contra rivales</h2>
+      <p class="section-text">
+        Solo se muestran rivales repetidos al menos 2 veces.
+      </p>
+    </div>
+
+    {% if rivalries %}
+      <div class="standings-list">
+        {% for rivalry in rivalries %}
+          <a
+            href="{% url 'player_detail' rivalry.player.slug %}?scope={{ scope }}"
+            class="card standings-row standings-link"
+            aria-label="Ver jugador {{ rivalry.player.display_name }}"
+          >
+            <div class="standings-main">
+              <div class="standings-rank">#{{ forloop.counter }}</div>
+
+              <div class="media-object">
+                {% if rivalry.player.avatar %}
+                  <img
+                    src="{{ rivalry.player.avatar.url }}"
+                    alt="{{ rivalry.player.display_name }}"
+                    class="avatar avatar--sm"
+                  >
+                {% else %}
+                  <div class="media-fallback media-fallback--sm">
+                    {{ rivalry.player.display_name|slice:":1"|upper }}
+                  </div>
+                {% endif %}
+
+                <div>
+                  <h3 class="card-title">{{ rivalry.player.display_name }}</h3>
+                  <p class="section-text">
+                    Winrate: {{ rivalry.winrate|floatformat:1 }}%
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="meta-list">
+              <span class="meta-pill meta-pill--strong">{{ rivalry.matches }}</span>
+              <span class="meta-pill">matches</span>
+              <span class="meta-pill">{{ rivalry.wins }}W</span>
+              <span class="meta-pill">{{ rivalry.losses }}L</span>
+              <span class="meta-pill">{{ rivalry.draws }}D</span>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="card">
+        <p>Todavía no hay suficientes enfrentamientos repetidos para mostrar rivalidades.</p>
+      </div>
+    {% endif %}
+  </section>
+
+  <section class="page-section">
+    <div class="page-heading">
+      <h2>Torneos jugados</h2>
+    </div>
+
+    {% if entries %}
+      <div class="card-list">
+        {% for entry in entries %}
+          <a
+            href="{{ entry.tournament.get_absolute_url }}"
+            class="card card-link"
+            aria-label="Ver torneo {{ entry.tournament.name }}"
+          >
+            <p class="card-kicker">Torneo</p>
+
+            <h3 class="card-title">{{ entry.tournament.name }}</h3>
+
+            <div class="media-subline">
+              {% if entry.legend %}
+                {% if entry.legend.image %}
+                  <img
+                    src="{{ entry.legend.image.url }}"
+                    alt="{{ entry.legend.name }}"
+                    class="legend-image legend-image--sm"
+                  >
+                {% endif %}
+                <span class="section-text">{{ entry.legend.name }}</span>
+              {% else %}
+                <span class="section-text">Sin leyenda</span>
+              {% endif %}
+            </div>
+
+            <div class="meta-list">
+              <span class="{{ entry.tournament.set.badge_classes }}">{{ entry.tournament.set.name }}</span>
+              <span class="meta-pill badge-date">{{ entry.tournament.date|date:"d/m/Y" }}</span>
+              <span class="meta-pill">{{ entry.points }} pts</span>
+              <span class="meta-pill">{{ entry.wins }}W</span>
+              <span class="meta-pill">{{ entry.losses }}L</span>
+              <span class="meta-pill">{{ entry.draws }}D</span>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="card">
+        <p>Este jugador aún no ha participado en torneos.</p>
+      </div>
+    {% endif %}
+  </section>
+
+</section>
+{% endblock %}

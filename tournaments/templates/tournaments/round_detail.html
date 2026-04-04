@@ -1,0 +1,162 @@
+{% extends "core/base.html" %}
+
+{% block title %}{{ tournament.name }} · Ronda {{ round.number }}{% endblock %}
+
+{% block content %}
+<section class="page-section">
+  <div class="page-heading">
+    <p class="eyebrow">Ronda</p>
+    <h1>{{ tournament.name }} · Ronda {{ round.number }}</h1>
+
+    <div class="meta-list">
+      <span class="{{ tournament.set.badge_classes }}">{{ tournament.set.name }}</span>
+      <span class="{{ round.status_badge_classes }}">{{ round.get_status_display }}</span>
+    </div>
+  </div>
+
+  {% if round.matches.all %}
+    <div class="match-list">
+      {% for match in round.matches.all %}
+        <article class="card match-card">
+          {% if match.is_bye %}
+            <div class="match-row">
+              <div class="match-player">
+                <div class="media-object">
+                  {% if match.player1_entry.player.avatar %}
+                    <img
+                      src="{{ match.player1_entry.player.avatar.url }}"
+                      alt="{{ match.player1_entry.player.display_name }}"
+                      class="avatar avatar--sm"
+                    >
+                  {% else %}
+                    <div class="media-fallback media-fallback--sm">
+                      {{ match.player1_entry.player.display_name|slice:":1"|upper }}
+                    </div>
+                  {% endif %}
+
+                  <div>
+                    <h2 class="card-title">{{ match.player1_entry.player.display_name }}</h2>
+
+                    <div class="media-subline">
+                      {% if match.player1_entry.legend %}
+                        {% if match.player1_entry.legend.image %}
+                          <img
+                            src="{{ match.player1_entry.legend.image.url }}"
+                            alt="{{ match.player1_entry.legend.name }}"
+                            class="legend-image legend-image--sm"
+                          >
+                        {% endif %}
+                        <span class="section-text">{{ match.player1_entry.legend.name }}</span>
+                      {% else %}
+                        <span class="section-text">Sin leyenda</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="match-score">BYE</div>
+
+              <div class="match-player match-player--right">
+                <div class="meta-list">
+                  <span class="meta-pill meta-pill--success">Descanso</span>
+                </div>
+              </div>
+            </div>
+          {% else %}
+            <div class="match-row">
+              <div class="match-player">
+                <div class="media-object">
+                  {% if match.player1_entry.player.avatar %}
+                    <img
+                      src="{{ match.player1_entry.player.avatar.url }}"
+                      alt="{{ match.player1_entry.player.display_name }}"
+                      class="avatar avatar--sm"
+                    >
+                  {% else %}
+                    <div class="media-fallback media-fallback--sm">
+                      {{ match.player1_entry.player.display_name|slice:":1"|upper }}
+                    </div>
+                  {% endif %}
+
+                  <div>
+                    <h2 class="card-title">{{ match.player1_entry.player.display_name }}</h2>
+
+                    <div class="media-subline">
+                      {% if match.player1_entry.legend %}
+                        {% if match.player1_entry.legend.image %}
+                          <img
+                            src="{{ match.player1_entry.legend.image.url }}"
+                            alt="{{ match.player1_entry.legend.name }}"
+                            class="legend-image legend-image--sm"
+                          >
+                        {% endif %}
+                        <span class="section-text">{{ match.player1_entry.legend.name }}</span>
+                      {% else %}
+                        <span class="section-text">Sin leyenda</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="match-score">
+                {{ match.player1_wins }} - {{ match.player2_wins }}
+              </div>
+
+              <div class="match-player match-player--right">
+                <div class="media-object media-object--reverse">
+                  <div>
+                    <h2 class="card-title">{{ match.player2_entry.player.display_name }}</h2>
+
+                    <div class="media-subline">
+                      {% if match.player2_entry.legend %}
+                        {% if match.player2_entry.legend.image %}
+                          <img
+                            src="{{ match.player2_entry.legend.image.url }}"
+                            alt="{{ match.player2_entry.legend.name }}"
+                            class="legend-image legend-image--sm"
+                          >
+                        {% endif %}
+                        <span class="section-text">{{ match.player2_entry.legend.name }}</span>
+                      {% else %}
+                        <span class="section-text">Sin leyenda</span>
+                      {% endif %}
+                    </div>
+                  </div>
+
+                  {% if match.player2_entry.player.avatar %}
+                    <img
+                      src="{{ match.player2_entry.player.avatar.url }}"
+                      alt="{{ match.player2_entry.player.display_name }}"
+                      class="avatar avatar--sm"
+                    >
+                  {% else %}
+                    <div class="media-fallback media-fallback--sm">
+                      {{ match.player2_entry.player.display_name|slice:":1"|upper }}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% endif %}
+
+          <div class="meta-list">
+            {% if match.table_number %}
+              <span class="meta-pill">Mesa {{ match.table_number }}</span>
+            {% endif %}
+
+            {% if match.is_bye %}
+              <span class="meta-pill">Victoria automática</span>
+            {% endif %}
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card">
+      <p>No hay enfrentamientos registrados en esta ronda.</p>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

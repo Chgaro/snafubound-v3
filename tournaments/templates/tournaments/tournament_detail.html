@@ -1,0 +1,139 @@
+{% extends "core/base.html" %}
+
+{% block title %}{{ tournament.name }} · Snafubound{% endblock %}
+
+{% block content %}
+<section class="page-section">
+  <div class="page-heading">
+    <p class="eyebrow">Torneo</p>
+    <h1>{{ tournament.name }}</h1>
+
+    <div class="meta-list">
+      <span class="{{ tournament.set.badge_classes }}">{{ tournament.set.name }}</span>
+
+      <span class="{{ tournament.status_badge_classes }}">
+        {{ tournament.get_status_display }}
+      </span>
+
+      {% if tournament.date %}
+        <span class="meta-pill badge-date">{{ tournament.date|date:"d/m/Y" }}</span>
+      {% else %}
+        <span class="meta-pill badge-date badge-date--empty">Sin fecha</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <article class="card stat-card">
+      <p class="card-kicker">Jugadores</p>
+      <p class="stat-value">{{ total_players }}</p>
+    </article>
+
+    <article class="card stat-card">
+      <p class="card-kicker">Rondas</p>
+      <p class="stat-value">{{ total_rounds }}</p>
+    </article>
+
+    <article class="card stat-card">
+      <p class="card-kicker">Enfrentamientos</p>
+      <p class="stat-value">{{ total_matches }}</p>
+    </article>
+  </div>
+
+  <section class="page-section">
+    <div class="page-heading">
+      <h2>Rondas</h2>
+    </div>
+
+    {% if rounds %}
+      <div class="card-list">
+        {% for round in rounds %}
+          <a
+            href="{{ round.get_absolute_url }}"
+            class="card round-link"
+            aria-label="Ver ronda {{ round.number }}"
+          >
+            <p class="card-kicker">Ronda</p>
+            <h3 class="card-title">Ronda {{ round.number }}</h3>
+            <div class="meta-list">
+              <span class="{{ round.status_badge_classes }}">{{ round.get_status_display }}</span>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="card">
+        <p>No hay rondas registradas todavía.</p>
+      </div>
+    {% endif %}
+  </section>
+
+  <section class="page-section">
+    <div class="page-heading">
+      <h2>Clasificación</h2>
+    </div>
+
+    {% if entries %}
+      <div class="standings-list">
+        {% for entry in entries %}
+          <a
+            href="{% url 'player_detail' entry.player.slug %}"
+            class="card standings-row standings-link {% if forloop.counter <= 3 %}standings-row--top{{ forloop.counter }}{% endif %}"
+            aria-label="Ver jugador {{ entry.player.display_name }}"
+          >
+            <div class="standings-main">
+              <div class="standings-rank">
+                {% if forloop.counter == 1 %}
+                  🥇
+                {% elif forloop.counter == 2 %}
+                  🥈
+                {% elif forloop.counter == 3 %}
+                  🥉
+                {% else %}
+                  #{{ forloop.counter }}
+                {% endif %}
+              </div>
+
+              <div class="media-object">
+                {% if entry.player.avatar %}
+                  <img src="{{ entry.player.avatar.url }}" class="avatar avatar--sm">
+                {% else %}
+                  <div class="media-fallback media-fallback--sm">
+                    {{ entry.player.display_name|slice:":1"|upper }}
+                  </div>
+                {% endif %}
+
+                <div>
+                  <h3 class="card-title">{{ entry.player.display_name }}</h3>
+
+                  <div class="media-subline">
+                    {% if entry.legend %}
+                      {% if entry.legend.image %}
+                        <img src="{{ entry.legend.image.url }}" class="legend-image legend-image--sm">
+                      {% endif %}
+                      <span class="section-text">{{ entry.legend.name }}</span>
+                    {% else %}
+                      <span class="section-text">Sin leyenda</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="meta-list">
+              <span class="meta-pill meta-pill--strong">{{ entry.points }} pts</span>
+              <span class="meta-pill">{{ entry.wins }}W</span>
+              <span class="meta-pill">{{ entry.losses }}L</span>
+              <span class="meta-pill">{{ entry.draws }}D</span>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="card">
+        <p>No hay jugadores inscritos todavía.</p>
+      </div>
+    {% endif %}
+  </section>
+</section>
+{% endblock %}

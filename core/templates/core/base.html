@@ -1,0 +1,30 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Snafubound{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="{% url 'home' %}" class="brand">Snafubound</a>
+
+      <nav class="main-nav">
+        <a href="{% url 'home' %}">Inicio</a>
+        <a href="{% url 'tournament_list' %}">Torneos</a>
+        <a href="{% url 'player_list' %}">Jugadores</a>
+        <a href="{% url 'legend_list' %}">Leyendas</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="site-main">
+    <div class="container">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+</body>
+</html>

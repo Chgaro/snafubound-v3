@@ -1,0 +1,55 @@
+{% extends "core/base.html" %}
+
+{% block title %}Torneos · Snafubound{% endblock %}
+
+{% block content %}
+<section class="page-section">
+
+  <div class="page-heading">
+    <p class="eyebrow">Torneos</p>
+    <h1>Listado de torneos</h1>
+    <p class="section-text">
+      Consulta todos los torneos registrados.
+    </p>
+  </div>
+
+  {% if tournaments %}
+    <div class="card-list">
+      {% for tournament in tournaments %}
+        <a
+          href="{{ tournament.get_absolute_url }}"
+          class="card card-link"
+          aria-label="Ver torneo {{ tournament.name }}"
+        >
+          <p class="card-kicker">Torneo</p>
+
+          <h3 class="card-title">{{ tournament.name }}</h3>
+
+          <div class="meta-list">
+            {% if tournament.date %}
+              <span class="meta-pill badge-date">
+                {{ tournament.date|date:"d/m/Y" }}
+              </span>
+            {% else %}
+              <span class="meta-pill badge-date badge-date--empty">Sin fecha</span>
+            {% endif %}
+
+            <span class="{{ tournament.set.badge_classes }}">
+              {{ tournament.set.name }}
+            </span>
+
+            <span class="{{ tournament.status_badge_classes }}">
+              {{ tournament.get_status_display }}
+            </span>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card">
+      <p>No hay torneos registrados todavía.</p>
+    </div>
+  {% endif %}
+
+</section>
+{% endblock %}
