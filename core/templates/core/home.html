@@ -70,6 +70,7 @@
           <div class="meta-list">
             <span class="meta-pill">{{ top_player_all.total_points }} pts</span>
             <span class="meta-pill">{{ top_player_all.total_wins }}W</span>
+            <span class="meta-pill">{{ top_player_all.winrate|floatformat:1 }}% WR</span>
           </div>
         </a>
       {% endif %}
@@ -135,6 +136,7 @@
 
             <div class="meta-list">
               <span class="meta-pill">{{ top_player_current.total_points }} pts</span>
+              <span class="meta-pill">{{ top_player_current.winrate|floatformat:1 }}% WR</span>
             </div>
           </a>
         {% endif %}
@@ -202,6 +204,7 @@
 
           <div class="meta-list">
             <span class="meta-pill meta-pill--strong">{{ p.total_points }} pts</span>
+            <span class="meta-pill">{{ p.winrate|floatformat:1 }}% WR</span>
           </div>
         </a>
       {% endfor %}

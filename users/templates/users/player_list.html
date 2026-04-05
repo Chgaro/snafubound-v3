@@ -159,11 +159,14 @@
 
   <section class="page-section">
     <div class="page-heading">
-      <h2>Más participaciones</h2>
+      <h2>Mejor winrate %</h2>
+      <p class="section-text section-text--compact">
+        Solo se incluyen jugadores con al menos {{ min_tournaments_for_winrate_ranking }} participaciones.
+      </p>
     </div>
 
     <div class="standings-list">
-      {% for player in ranking_participations %}
+      {% for player in ranking_winrate %}
         <a
           href="{% url 'player_detail' player.player__slug %}"
           class="card standings-row standings-link {% if forloop.counter <= 3 %}standings-row--top{{ forloop.counter }}{% endif %}"
@@ -198,19 +201,20 @@
               <div>
                 <h3 class="card-title">{{ player.player__display_name }}</h3>
                 <p class="section-text">
-                  {{ player.total_points }} pts · {{ player.total_wins }} victorias
+                  {{ player.total_wins }}W · {{ player.total_losses }}L · {{ player.total_draws }}D
                 </p>
               </div>
             </div>
           </div>
 
           <div class="meta-list">
-            <span class="meta-pill meta-pill--strong">{{ player.total_tournaments }} torneos</span>
+            <span class="meta-pill meta-pill--strong">{{ player.winrate|floatformat:1 }}%</span>
+            <span class="meta-pill">{{ player.total_tournaments }} torneos</span>
           </div>
         </a>
       {% empty %}
         <div class="card">
-          <p>No hay datos suficientes para este ranking.</p>
+          <p>No hay suficientes jugadores con al menos {{ min_tournaments_for_winrate_ranking }} participaciones.</p>
         </div>
       {% endfor %}
     </div>

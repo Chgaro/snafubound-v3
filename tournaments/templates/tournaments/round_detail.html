@@ -35,7 +35,14 @@
                   {% endif %}
 
                   <div>
-                    <h2 class="card-title">{{ match.player1_entry.player.display_name }}</h2>
+                    <h2 class="card-title">
+                      <a
+                        href="{% url 'player_detail' match.player1_entry.player.slug %}"
+                        class="card-title-link"
+                      >
+                        {{ match.player1_entry.player.display_name }}
+                      </a>
+                    </h2>
 
                     <div class="media-subline">
                       {% if match.player1_entry.legend %}
@@ -80,7 +87,14 @@
                   {% endif %}
 
                   <div>
-                    <h2 class="card-title">{{ match.player1_entry.player.display_name }}</h2>
+                    <h2 class="card-title">
+                      <a
+                        href="{% url 'player_detail' match.player1_entry.player.slug %}"
+                        class="card-title-link"
+                      >
+                        {{ match.player1_entry.player.display_name }}
+                      </a>
+                    </h2>
 
                     <div class="media-subline">
                       {% if match.player1_entry.legend %}
@@ -107,7 +121,14 @@
               <div class="match-player match-player--right">
                 <div class="media-object media-object--reverse">
                   <div>
-                    <h2 class="card-title">{{ match.player2_entry.player.display_name }}</h2>
+                    <h2 class="card-title">
+                      <a
+                        href="{% url 'player_detail' match.player2_entry.player.slug %}"
+                        class="card-title-link"
+                      >
+                        {{ match.player2_entry.player.display_name }}
+                      </a>
+                    </h2>
 
                     <div class="media-subline">
                       {% if match.player2_entry.legend %}

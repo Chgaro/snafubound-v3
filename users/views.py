@@ -7,6 +7,83 @@ from .models import Player
 from .services import build_player_detail_data
 
 
+MIN_TOURNAMENTS_FOR_WINRATE_RANKING = 5
+
+
+def _build_player_rankings(entries):
+    player_rows = list(
+        entries.values(
+            "player__id",
+            "player__display_name",
+            "player__slug",
+            "player__avatar",
+        )
+        .annotate(
+            total_points=Sum("points"),
+            total_wins=Sum("wins"),
+            total_losses=Sum("losses"),
+            total_draws=Sum("draws"),
+            total_tournaments=Count("tournament", distinct=True),
+        )
+    )
+
+    for row in player_rows:
+        total_wins = row["total_wins"] or 0
+        total_losses = row["total_losses"] or 0
+        total_draws = row["total_draws"] or 0
+        total_matches = total_wins + total_losses + total_draws
+
+        row["total_matches"] = total_matches
+
+        if total_matches > 0:
+            row["winrate"] = ((total_wins + (0.5 * total_draws)) / total_matches) * 100
+        else:
+            row["winrate"] = 0
+
+    ranking_points = sorted(
+        player_rows,
+        key=lambda row: (
+            -(row["total_points"] or 0),
+            -(row["total_wins"] or 0),
+            -(row["total_tournaments"] or 0),
+            row["player__display_name"].lower(),
+        ),
+    )[:5]
+
+    ranking_wins = sorted(
+        player_rows,
+        key=lambda row: (
+            -(row["total_wins"] or 0),
+            -(row["total_points"] or 0),
+            -(row["total_tournaments"] or 0),
+            row["player__display_name"].lower(),
+        ),
+    )[:5]
+
+    winrate_candidates = [
+        row
+        for row in player_rows
+        if (row["total_tournaments"] or 0) >= MIN_TOURNAMENTS_FOR_WINRATE_RANKING
+        and (row["total_matches"] or 0) > 0
+    ]
+
+    ranking_winrate = sorted(
+        winrate_candidates,
+        key=lambda row: (
+            -(row["winrate"] or 0),
+            -(row["total_matches"] or 0),
+            -(row["total_points"] or 0),
+            row["player__display_name"].lower(),
+        ),
+    )[:5]
+
+    return {
+        "ranking_points": ranking_points,
+        "ranking_wins": ranking_wins,
+        "ranking_winrate": ranking_winrate,
+    }
+
+
 def player_list(request):
     scope = request.GET.get("scope", "all")
     if scope not in {"all", "set"}:
@@ -22,63 +99,15 @@ def player_list(request):
     if scope == "set" and current_set:
         entries = entries.filter(tournament__set=current_set)
 
-    ranking_points = (
-        entries.values(
-            "player__id",
-            "player__display_name",
-            "player__slug",
-            "player__avatar",
-        )
-        .annotate(
-            total_points=Sum("points"),
-            total_wins=Sum("wins"),
-            total_losses=Sum("losses"),
-            total_draws=Sum("draws"),
-            total_tournaments=Count("tournament", distinct=True),
-        )
-        .order_by("-total_points", "-total_wins", "player__display_name")[:5]
-    )
-
-    ranking_wins = (
-        entries.values(
-            "player__id",
-            "player__display_name",
-            "player__slug",
-            "player__avatar",
-        )
-        .annotate(
-            total_points=Sum("points"),
-            total_wins=Sum("wins"),
-            total_losses=Sum("losses"),
-            total_draws=Sum("draws"),
-            total_tournaments=Count("tournament", distinct=True),
-        )
-        .order_by("-total_wins", "-total_points", "player__display_name")[:5]
-    )
-
-    ranking_participations = (
-        entries.values(
-            "player__id",
-            "player__display_name",
-            "player__slug",
-            "player__avatar",
-        )
-        .annotate(
-            total_points=Sum("points"),
-            total_wins=Sum("wins"),
-            total_losses=Sum("losses"),
-            total_draws=Sum("draws"),
-            total_tournaments=Count("tournament", distinct=True),
-        )
-        .order_by("-total_tournaments", "-total_points", "player__display_name")[:5]
-    )
+    rankings = _build_player_rankings(entries)
 
     context = {
-        "ranking_points": ranking_points,
-        "ranking_wins": ranking_wins,
-        "ranking_participations": ranking_participations,
+        "ranking_points": rankings["ranking_points"],
+        "ranking_wins": rankings["ranking_wins"],
+        "ranking_winrate": rankings["ranking_winrate"],
         "scope": scope,
         "current_set": current_set,
+        "min_tournaments_for_winrate_ranking": MIN_TOURNAMENTS_FOR_WINRATE_RANKING,
     }
 
     return render(request, "users/player_list.html", context)
