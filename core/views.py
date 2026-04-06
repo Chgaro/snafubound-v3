@@ -1,8 +1,10 @@
 from django.db.models import Count, Sum
-from django.shortcuts import render
+from django.shortcuts import redirect, render
+from django.urls import reverse
 
 from catalog.models import Set
 from tournaments.models import Tournament, TournamentEntry
+from users.services import build_player_search_data
 
 
 def _with_winrate(rows):
@@ -27,6 +29,8 @@ def _with_winrate(rows):
 
 
 def home(request):
+    query = (request.GET.get("q") or "").strip()
+
     latest_tournaments = (
         Tournament.objects.select_related("set")
         .order_by("-date", "-id")[:4]
@@ -34,13 +38,18 @@ def home(request):
 
     current_set = Set.objects.filter(is_active=True).first()
 
-    # Base histórica: solo torneos finalizados
     base_entries = (
         TournamentEntry.objects.select_related("player", "legend", "tournament", "tournament__set")
         .filter(tournament__status="finished")
     )
 
-    # Para rankings de leyendas no contamos entries sin leyenda
+    search_data = build_player_search_data(entries=base_entries, query=query)
+
+    if search_data["exact_match"]:
+        return redirect(
+            reverse("player_detail", kwargs={"slug": search_data["exact_match"]["player__slug"]})
+        )
+
     base_entries_with_legend = base_entries.filter(legend__isnull=False)
 
     if current_set:
@@ -51,10 +60,6 @@ def home(request):
     else:
         current_entries = TournamentEntry.objects.none()
         current_entries_with_legend = TournamentEntry.objects.none()
-
-    # -------------------------
-    # Destacados históricos
-    # -------------------------
 
     top_player_all_rows = list(
         base_entries.values(
@@ -100,10 +105,6 @@ def home(request):
         .first()
     )
 
-    # -------------------------
-    # Destacados set actual
-    # -------------------------
-
     top_player_current_rows = list(
         current_entries.values(
             "player__id",
@@ -147,10 +148,6 @@ def home(request):
         )
         .first()
     )
-
-    # -------------------------
-    # Rankings resumidos home
-    # -------------------------
 
     top_players_rows = list(
         base_entries.values(
@@ -204,6 +201,9 @@ def home(request):
         "top_legend_current": top_legend_current,
         "top_players": top_players,
         "top_legends": top_legends,
+        "search_query": search_data["query"],
+        "search_results": search_data["results"],
+        "is_search_mode": search_data["has_query"],
     }
 
     return render(request, "core/home.html", context)

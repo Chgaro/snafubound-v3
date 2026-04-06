@@ -6,6 +6,83 @@ from tournaments.models import Match
 MIN_MATCHES_FOR_RIVALRY = 2
 
 
+def build_player_rows(entries):
+    player_rows = list(
+        entries.values(
+            "player__id",
+            "player__display_name",
+            "player__slug",
+            "player__avatar",
+        ).annotate(
+            total_points=Sum("points"),
+            total_wins=Sum("wins"),
+            total_losses=Sum("losses"),
+            total_draws=Sum("draws"),
+            total_tournaments=Count("tournament", distinct=True),
+        )
+    )
+
+    for row in player_rows:
+        total_wins = row["total_wins"] or 0
+        total_losses = row["total_losses"] or 0
+        total_draws = row["total_draws"] or 0
+        total_matches = total_wins + total_losses + total_draws
+
+        row["total_matches"] = total_matches
+
+        if total_matches > 0:
+            row["winrate"] = ((total_wins + (0.5 * total_draws)) / total_matches) * 100
+        else:
+            row["winrate"] = 0
+
+    return player_rows
+
+
+def build_player_search_data(entries, query, limit=12):
+    query = (query or "").strip()
+
+    if not query:
+        return {
+            "query": "",
+            "exact_match": None,
+            "results": [],
+            "has_query": False,
+        }
+
+    normalized_query = query.casefold()
+
+    player_rows = build_player_rows(
+        entries.filter(player__display_name__icontains=query)
+    )
+
+    exact_match = next(
+        (
+            row
+            for row in player_rows
+            if (row["player__display_name"] or "").casefold() == normalized_query
+        ),
+        None,
+    )
+
+    results = sorted(
+        player_rows,
+        key=lambda row: (
+            0 if (row["player__display_name"] or "").casefold().startswith(normalized_query) else 1,
+            -(row["total_points"] or 0),
+            -(row["winrate"] or 0),
+            -(row["total_tournaments"] or 0),
+            (row["player__display_name"] or "").lower(),
+        ),
+    )[:limit]
+
+    return {
+        "query": query,
+        "exact_match": exact_match,
+        "results": results,
+        "has_query": True,
+    }
+
+
 def build_player_summary(entries):
     stats = entries.aggregate(
         total_points=Sum("points"),

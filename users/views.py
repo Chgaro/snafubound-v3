@@ -1,44 +1,23 @@
-from django.db.models import Count, Sum
-from django.shortcuts import get_object_or_404, render
+from urllib.parse import urlencode
+
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
 from catalog.models import Set
 from tournaments.models import TournamentEntry
 from .models import Player
-from .services import build_player_detail_data
+from .services import (
+    build_player_detail_data,
+    build_player_rows,
+    build_player_search_data,
+)
 
 
 MIN_TOURNAMENTS_FOR_WINRATE_RANKING = 5
 
 
 def _build_player_rankings(entries):
-    player_rows = list(
-        entries.values(
-            "player__id",
-            "player__display_name",
-            "player__slug",
-            "player__avatar",
-        )
-        .annotate(
-            total_points=Sum("points"),
-            total_wins=Sum("wins"),
-            total_losses=Sum("losses"),
-            total_draws=Sum("draws"),
-            total_tournaments=Count("tournament", distinct=True),
-        )
-    )
-
-    for row in player_rows:
-        total_wins = row["total_wins"] or 0
-        total_losses = row["total_losses"] or 0
-        total_draws = row["total_draws"] or 0
-        total_matches = total_wins + total_losses + total_draws
-
-        row["total_matches"] = total_matches
-
-        if total_matches > 0:
-            row["winrate"] = ((total_wins + (0.5 * total_draws)) / total_matches) * 100
-        else:
-            row["winrate"] = 0
+    player_rows = build_player_rows(entries)
 
     ranking_points = sorted(
         player_rows,
@@ -89,6 +68,8 @@ def player_list(request):
     if scope not in {"all", "set"}:
         scope = "all"
 
+    query = (request.GET.get("q") or "").strip()
+
     current_set = Set.objects.filter(is_active=True).first()
 
     entries = (
@@ -99,6 +80,14 @@ def player_list(request):
     if scope == "set" and current_set:
         entries = entries.filter(tournament__set=current_set)
 
+    search_data = build_player_search_data(entries=entries, query=query)
+
+    if search_data["exact_match"]:
+        url = reverse("player_detail", kwargs={"slug": search_data["exact_match"]["player__slug"]})
+        if scope == "set":
+            url = f"{url}?{urlencode({'scope': 'set'})}"
+        return redirect(url)
+
     rankings = _build_player_rankings(entries)
 
     context = {
@@ -108,6 +97,9 @@ def player_list(request):
         "scope": scope,
         "current_set": current_set,
         "min_tournaments_for_winrate_ranking": MIN_TOURNAMENTS_FOR_WINRATE_RANKING,
+        "search_query": search_data["query"],
+        "search_results": search_data["results"],
+        "is_search_mode": search_data["has_query"],
     }
 
     return render(request, "users/player_list.html", context)
